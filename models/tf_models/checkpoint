@@ -1,2 +1,0 @@
-model_checkpoint_path: "rnn_model.chkp"
-all_model_checkpoint_paths: "rnn_model.chkp"

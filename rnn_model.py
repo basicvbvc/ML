@@ -2,9 +2,6 @@ import tensorflow as tf
 import itertools as it
 import os
 import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
 
 class Datahandle:
 
@@ -125,7 +122,10 @@ class RNNmodel:
     
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
-            
+            #saver = tf.train.import_meta_graph('./models/tf_models/rnn_model.chkp.meta')
+
+            all_saver.restore(sess, './models/tf_models/rnn_model.chkp')
+
             for epoch_idx in range(epochs):
                 xx, yy = next(self.get_batch)
                 batch_count = len(self.D.chars) // batch_size // truncated_backprop
@@ -145,7 +145,7 @@ class RNNmodel:
                     if batch_idx % 5 == 0:
                         print('Step', batch_idx, 'Batch_loss', _total_loss)
                     
-                    if batch_idx % 500 == 0:
+                    if batch_idx % 50 == 0:
                         all_saver.save(sess, 'models/tf_models/rnn_model.chkp')
 
                 if epoch_idx % 5 == 0:
