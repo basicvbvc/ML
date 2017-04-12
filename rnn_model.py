@@ -91,15 +91,18 @@ class RNNmodel:
             x = tf.placeholder(tf.float32, [batch_size, truncated_backprop], name='x')
             y = tf.placeholder(tf.int32, [batch_size, truncated_backprop], name='y')
         
-        W = tf.Variable(np.random.rand(n_hidden, num_classes), dtype=tf.float32)
-        b = tf.Variable(np.random.rand(1, num_classes), dtype=tf.float32)
+        with tf.name_scope('weights'):
+            W = tf.Variable(np.random.rand(n_hidden, num_classes), dtype=tf.float32)
+            b = tf.Variable(np.random.rand(1, num_classes), dtype=tf.float32)
 
         inputs_series = tf.split(x, truncated_backprop, 1)
         labels_series = tf.unstack(y, axis=1)
-       
-        cell = tf.contrib.rnn.BasicLSTMCell(n_hidden, state_is_tuple=True)
-        cell = tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=dropout)
-        cell = tf.contrib.rnn.MultiRNNCell([cell] * n_layers)
+        
+        with tf.name_scope('LSTM'):
+            cell = tf.contrib.rnn.BasicLSTMCell(n_hidden, state_is_tuple=True)
+            cell = tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=dropout)
+            cell = tf.contrib.rnn.MultiRNNCell([cell] * n_layers)
+        
         states_series, current_state = tf.contrib.rnn.static_rnn(cell, inputs_series, \
             dtype=tf.float32)
        
@@ -122,9 +125,9 @@ class RNNmodel:
     
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
-            #saver = tf.train.import_meta_graph('./models/tf_models/rnn_model.chkp.meta')
-
-            all_saver.restore(sess, './models/tf_models/rnn_model.chkp')
+            #tf.reset_default_graph()
+            #saver = tf.train.import_meta_graph('./models/tf_models/rnn_model.meta')
+            #saver.restore(sess, './models/tf_models/rnn_model')
 
             for epoch_idx in range(epochs):
                 xx, yy = next(self.get_batch)
@@ -146,12 +149,12 @@ class RNNmodel:
                         print('Step', batch_idx, 'Batch_loss', _total_loss)
                     
                     if batch_idx % 50 == 0:
-                        all_saver.save(sess, 'models/tf_models/rnn_model.chkp')
+                        all_saver.save(sess, 'models/tf_models/rnn_model')
 
                 if epoch_idx % 5 == 0:
                     print('Epoch', epoch_idx, 'Last_loss', loss_list[-1])
 
-rnn = RNNmodel(batch_size=50, seq_len=100)
+rnn = RNNmodel(batch_size=200, seq_len=100)
 
 rnn.get_data('data/HPserie')
 
