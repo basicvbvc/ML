@@ -24,7 +24,7 @@ class Datahandle:
             chars.extend(cs)
             unique.update(cs)
         self.chars = chars
-        self.unique = list(unique)
+        self.unique = sorted(list(unique))
         self.build_dictionaries()
 
     def build_dictionaries(self):
@@ -37,6 +37,8 @@ class Datahandle:
             max_idx = l - seq_len
             list_idx = np.arange(0, max_idx, 100)
             np.random.shuffle(list_idx)
+            print(list_idx)
+            print(self.chars[0:10])
             for step in list_idx:
                 seqX = self.chars[step:step + seq_len]
                 seqY = self.chars[step + 1:step + 1 + seq_len]
@@ -69,6 +71,7 @@ class RNNmodel:
         D.process_raw()
         self.get_batch = D.batch_gen(self.batch_size, self.seq_len)
         j = 0
+        self.batchX, self.batchY = next(self.get_batch)
         #for i in self.get_batch:
             #if(i[0].shape[0] < 50 or i[1].shape[0] < 50):
                 #print(i[0].shape)
@@ -124,18 +127,17 @@ class RNNmodel:
         all_saver = tf.train.Saver()
     
         with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-            #tf.reset_default_graph()
-            #saver = tf.train.import_meta_graph('./models/tf_models/rnn_model.meta')
-            #saver.restore(sess, './models/tf_models/rnn_model')
+            #sess.run(tf.global_variables_initializer())
+            tf.reset_default_graph()
+            saver = tf.train.import_meta_graph('./models/tf_models/rnn_model.meta')
+            saver.restore(sess, './models/tf_models/rnn_model')
 
             for epoch_idx in range(epochs):
-                xx, yy = next(self.get_batch)
                 batch_count = len(self.D.chars) // batch_size // truncated_backprop
 
                 for batch_idx in range(batch_count):
                     batchX, batchY = next(self.get_batch)
-   
+
                     summ, _total_loss, _train_step, _current_state, _prediction_series = sess.run(\
                         [summary_op, total_loss, train_step, current_state, prediction_series],
                         feed_dict = {
@@ -154,7 +156,7 @@ class RNNmodel:
                 if epoch_idx % 5 == 0:
                     print('Epoch', epoch_idx, 'Last_loss', loss_list[-1])
 
-rnn = RNNmodel(batch_size=200, seq_len=100)
+rnn = RNNmodel(batch_size=200, seq_len=50)
 
 rnn.get_data('data/HPserie')
 
